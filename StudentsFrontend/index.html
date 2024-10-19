@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./styles/index.css">
+        <title>База студентов</title>
+</head>
+<body>
+
+   <header class="header">
+      <h1 class="header__title">ТАБЛИЦА СТУДЕНТОВ</h1>
+   </header>
+
+   <main class="main">
+      <div class="container">
+         <div class="addStudent">
+            <div class="addStudent__title">
+               <h1>Добавить студента:</h1>
+            </div>
+            <form class="addStudent__form">
+                  <div class="addStudent__form__block">
+                     <label for="FirstName" class="addStudent__form__label">Имя</label>
+                     <input type="text" class="addStudent__form__input" name="FirstName" placeholder="Имя" required>
+                  </div>
+                  
+                  <div class="addStudent__form__block">
+                     <label for="LastName" class="addStudent__form__label">Фамилия</label>
+                     <input type="text" class="addStudent__form__input" name="LastName" placeholder="Фамилия" required>
+                  </div>
+                  
+                  <div class="addStudent__form__block">
+                     <label for="MiddleName" class="addStudent__form__label">Отчество</label>
+                     <input type="text" class="addStudent__form__input" name="MiddleName" placeholder="Отчество" required>
+                  </div>
+                  <div class="addStudent__form__block">
+                     <label for="DateOfBirth" class="addStudent__form__label">Дата рождения</label>
+                     <input type="Date" class="addStudent__form__input" name="DateOfBirth" required>
+                  </div>
+                  
+                  <div class="addStudent__form__block">
+                     <label for="Group" class="addStudent__form__label">Группа</label>
+                     <input type="text" class="addStudent__form__input" name="Group" placeholder="Группа" required>
+                  </div>
+
+                  <div class="addStudent__form__block">
+                     <button class="addStudent__form__button" type="submit">Добавить студента</button>
+                  </div>
+            </form>
+         </div>
+
+         <table class="studentsTable">
+            <thead class="studentsTable__thead">
+                  <tr class="studentsTable__tr">
+                     <th class="studentsTable__th">Имя</th>
+                     <th class="studentsTable__th">Фамилия</th>
+                     <th class="studentsTable__th">Отчество</th>
+                     <th class="studentsTable__th">Дата рождения</th>
+                     <th class="studentsTable__th">Группа</th>
+                     <th class="studentsTable__th">Удалить</th>
+                  </tr>
+            </thead>
+
+            <tbody class="studentsTable__tbody">
+            </tbody>
+         </table>
+      </div>
+   </main>
+
+   <script src="./scripts/index.js"></script>
+</body>
+</html>
