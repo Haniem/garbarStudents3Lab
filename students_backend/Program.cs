@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using YourNamespace;
 
-var builder = WebApplication.CreateBuilder(args);   
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
@@ -14,15 +14,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Настройка CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://127.0.0.1:5500") // Укажите свой адрес клиента
+    options.AddPolicy("AllowAllOrigins",
+        builder => builder.AllowAnyOrigin() // Разрешить запросы с любых источников
                           .AllowAnyHeader()
                           .AllowAnyMethod());
 });
-
-builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -35,9 +34,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+// Включение CORS
+app.UseCors("AllowAllOrigins");
 
-app.UseCors("AllowSpecificOrigin");
+app.UseAuthorization();
 
 app.MapControllers();
 

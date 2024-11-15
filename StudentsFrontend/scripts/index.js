@@ -1,13 +1,21 @@
+const container = document.querySelector(".container");
 const studentsTable__tbody = document.querySelector(".studentsTable__tbody");
-const addStudent__form = document.querySelector(".addStudent__form");
+const addStudent__form = document.querySelector(".addStudent__form"); 
 const addStudent__form__button = document.querySelector(".addStudent__form__button");
 const studentsTable__thead = document.querySelector(".studentsTable__thead");
+const pageSizeInput = document.querySelector("#pageSize");
+const prevPageButton = document.querySelector("#prevPage");
+const nextPageButton = document.querySelector("#nextPage");
+const paginationContainer = document.querySelector("#pagination");  
 
-// Функция для рендеринга студентов в таблицу
-function renderStudents(students) {
-    studentsTable__tbody.innerHTML = ''; // Очищаем таблицу
+let students = [];
+let currentPage = 1;
+let pageSize = parseInt(pageSizeInput.value);
 
-    students.forEach((student) => {
+function renderStudents(studentsPage) {
+    studentsTable__tbody.innerHTML = '';
+
+    studentsPage.forEach((student) => {
         let tr = document.createElement("tr");
         tr.className = "studentsTable__tr";
 
@@ -43,7 +51,7 @@ function renderStudents(students) {
         let delTd = document.createElement("td");
         delTd.className = "studentsTable__td";
         let delBtn = document.createElement("button");
-        delBtn.className = "delBtn";
+        delBtn.className = "btn btn-danger delBtn";
         delBtn.innerHTML = "Удалить";
 
         delBtn.addEventListener("click", () => {
@@ -58,73 +66,91 @@ function renderStudents(students) {
     });
 }
 
-// Сортировка данных по указанному полю
-function sortStudents(students, field, direction) {
-    return students.sort((a, b) => {
-        if (a[field] < b[field]) return direction === 'asc' ? -1 : 1;
-        if (a[field] > b[field]) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
+function paginateStudents(students) {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = currentPage * pageSize;
+    return students.slice(startIndex, endIndex);
 }
 
-// Функция для сброса подсветки с заголовков
-function clearSortingHighlights() {
-    const headers = studentsTable__thead.querySelectorAll("th");
-    headers.forEach(header => header.classList.remove("sorted"));
-}
+function renderPaginationControls() {
+    const totalPages = Math.ceil(students.length / pageSize);
+    paginationContainer.innerHTML = '';  
 
-// Добавляем обработчики сортировки для заголовков таблицы
-studentsTable__thead.addEventListener('click', (event) => {
-    if (event.target.tagName === 'TH') {
-        const column = event.target.innerText.toLowerCase();
-        let field = '';
+    const paginationList = document.createElement("ul");
+    paginationList.className = "pagination justify-content-center";
 
-        // Определяем, по какому полю сортировать
-        switch (column) {
-            case 'имя':
-                field = 'firstName';
-                break;
-            case 'фамилия':
-                field = 'lastName';
-                break;
-            case 'отчество':
-                field = 'middleName';
-                break;
-            case 'дата рождения':
-                field = 'dateOfBirth';
-                break;
-            case 'группа':
-                field = 'group';
-                break;
-            default:
-                return; // Не сортируем по столбцу "Удалить"
+    const prevButton = document.createElement("li");
+    prevButton.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+    const prevLink = document.createElement("a");
+    prevLink.className = "page-link";
+    prevLink.href = "#";
+    prevLink.innerText = "Предыдущая";
+    prevButton.appendChild(prevLink);
+    prevButton.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
         }
-
-        // Определяем направление сортировки (asc/desc)
-        let direction = event.target.getAttribute('data-direction') === 'asc' ? 'desc' : 'asc';
-        event.target.setAttribute('data-direction', direction);
-
-        // Сортируем и рендерим отсортированных студентов
-        students = sortStudents(students, field, direction);
-        renderStudents(students);
-
-        // Убираем подсветку с других заголовков и подсвечиваем активный
-        clearSortingHighlights();
-        event.target.classList.add("sorted");
-    }
-});
-
-let students = [];
-
-fetch('https://localhost:7147/api/Students')
-    .then((response) => response.json())
-    .then((data) => {
-        students = data;
-        renderStudents(students);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
     });
+    paginationList.appendChild(prevButton);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const pageItem = document.createElement("li");
+        pageItem.className = `page-item ${i === currentPage ? "active" : ""}`;
+        const pageLink = document.createElement("a");
+        pageLink.className = "page-link";
+        pageLink.href = "#";
+        pageLink.innerText = i;
+        pageLink.addEventListener("click", () => {
+            currentPage = i;
+            updatePagination();
+        });
+        pageItem.appendChild(pageLink);
+        paginationList.appendChild(pageItem);
+    }
+
+    const nextButton = document.createElement("li");
+    nextButton.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+    const nextLink = document.createElement("a");
+    nextLink.className = "page-link";
+    nextLink.href = "#";
+    nextLink.innerText = "Следующая";
+    nextButton.appendChild(nextLink);
+    nextButton.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+    paginationList.appendChild(nextButton);
+
+    paginationContainer.appendChild(paginationList);
+}
+
+function updatePagination() {
+    const studentsPage = paginateStudents(students);
+    renderStudents(studentsPage);
+    renderPaginationControls();
+}
+
+async function fetchStudents() {
+    try {
+        const response = await fetch('https://localhost:7147/api/Students');
+        if (!response.ok) throw new Error(`Ошибка загрузки студентов: ${response.status}`);
+        
+        students = await response.json();
+        updatePagination();
+        checkStudents();
+    } catch (error) {
+        console.error('Ошибка при получении данных студентов:', error);
+    }
+}
+
+pageSizeInput.addEventListener('input', (event) => {
+    pageSize = parseInt(event.target.value);
+    currentPage = 1;  
+    updatePagination();
+});
 
 async function postData(url = "") {
     try {
@@ -136,9 +162,28 @@ async function postData(url = "") {
             throw new Error("Ошибка при удалении студента");
         }
 
-        alert("Студент успешно удален");
     } catch (error) {
         console.error('Ошибка:', error);
+    }
+}
+
+function checkStudents() {
+    const noStudentsElement = document.querySelector('.alert__noStudents');
+    const paginationContainer = document.querySelector('#pagination');  // Элемент пагинации
+
+    if (students.length > 0) {
+        if (noStudentsElement) {
+            noStudentsElement.remove();
+        }
+    } else {
+        if (!noStudentsElement) { 
+            let noStudents = document.createElement("h1");
+            noStudents.className = "alert__noStudents";
+            noStudents.innerHTML = "Ни одного студента не найдено"; 
+
+            // Вставляем перед пагинацией
+            container.insertBefore(noStudents, paginationContainer);
+        }
     }
 }
 
@@ -174,11 +219,10 @@ addStudent__form__button.addEventListener('click', async function (event) {
             const errorData = await response.text();
             throw new Error(`Ошибка при создании студента: ${response.status} - ${errorData}`);
         }
-        alert("Студент успешно создан");
 
     } catch (error) {
         console.error('Ошибка:', error);
     }
-
-    location.reload();
 });
+
+setInterval(fetchStudents, 1000);
